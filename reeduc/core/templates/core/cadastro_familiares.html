@@ -1,0 +1,389 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Familiares</title>
+    <link rel="stylesheet" href="{% static 'core/home.css' %}" />
+    <link rel="stylesheet" href="{% static 'core/cadastro.css' %}" />
+    <link rel="stylesheet" href="{% static 'core/cadastro_perfil.css' %}" />
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <a class="brand" href="/home/">REEDUC</a>
+            <button class="new-button" id="novoButton">
+                <span class="icon">+</span>
+                <span>Novo</span>
+            </button>
+            <div class="new-menu" id="novoMenu">
+                <a href="/home/cadastro/adicionar">Cadastro</a>
+                <a href="/atendimentos/adicionar">Atendimento</a>
+                <a href="/agendamentos/adicionar">Agendamento</a>
+            </div>
+            <nav class="menu">
+                <div class="menu-group">
+                    <button class="menu__item menu__item--toggle" type="button" data-target="cadastros-submenu">
+                        Cadastros
+                        <span class="caret">▾</span>
+                    </button>
+                    <div class="submenu" id="cadastros-submenu">
+                        <a class="submenu__item" href="/home/cadastros">Todos</a>
+                        <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
+                        <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
+                        <a class="submenu__item" href="/home/cadastros/familiares">Familiares</a>
+                    </div>
+                </div>
+                <a class="menu__item" href="/agendamentos">Agendamentos</a>
+                <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
+                <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
+            </nav>
+        </aside>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="search">
+                    <input type="text" placeholder="buscar..." />
+                    <span class="search__icon">🔍</span>
+                </div>
+                <div class="user-menu" id="userMenu">
+                    <div class="avatar" id="userMenuToggle">👤</div>
+                    <div class="user-menu__dropdown" id="userMenuDropdown">
+                        <div class="user-menu__title">Usuário</div>
+                        <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
+                        <a href="/atividades/minhasatividades">Minhas Atividades</a>
+                        <a href="/sair">Sair</a>
+                        {% if request.user.is_staff %}
+                        <div class="user-menu__title">Admin</div>
+                        <a href="/administrar/usuarios">Gerenciar Usuários</a>
+                        <a href="/administrar/adicionarUsuario">Adicionar Usuário</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+
+            <section class="content">
+                <div class="perfil-header">
+                    <div>
+                        <h1>{{ cadastro.nome }}</h1>
+                        <p>CPF: {{ cadastro.cpf_numero|default:"000.000.000-00" }}</p>
+                    </div>
+                </div>
+
+                <div class="perfil-tabs">
+                    <a class="tab nav-link" href="/cadastro/perfil/{{ cadastro.id }}">Perfil</a>
+                    <a class="tab nav-link active" href="/cadastro/familiares/{{ cadastro.id }}">Familiares</a>
+                    <a class="tab nav-link" href="/cadastro/atendimentos/{{ cadastro.id }}">Atendimentos</a>
+                    <a class="tab nav-link" href="/cadastro/agendamentos/{{ cadastro.id }}">Agendamentos</a>
+                </div>
+
+                <div id="familiares" class="tab-content bg-white rounded p-2 py-1" style="margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                        <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Familiares</h3>
+                        <button type="button" id="openFamiliarModal" class="primary-button" style="padding: 6px 12px;">+ Cadastrar Familiar</button>
+                    </div>
+                    <div class="table-card__body">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Parentesco</th>
+                                    <th>Telefone</th>
+                                    <th>Data de Nascimento</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for familiar in familiares %}
+                                <tr>
+                                    <td>{{ familiar.nome }}</td>
+                                    <td>{{ familiar.parentesco|default:"-" }}</td>
+                                    <td>{{ familiar.telefone_numero|default:"-" }}</td>
+                                    <td>{{ familiar.data_nascimento|date:"d/m/Y"|default:"-" }}</td>
+                                    <td>
+                                        <a href="/cadastro/familiares/ver/{{ familiar.id }}" title="Ver">👁️</a>
+                                        <a href="/cadastro/familiares/editar/{{ familiar.id }}" title="Editar" style="margin-left: 6px;">✏️</a>
+                                        <a href="/cadastro/familiares/excluir/{{ familiar.id }}" title="Excluir" style="margin-left: 6px;">🗑️</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5">Nenhum familiar cadastrado.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="modal fade" id="familiarModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Cadastrar Familiar</h3>
+                    <button type="button" class="modal-close" id="closeFamiliarModal">×</button>
+                </div>
+                <div class="modal-body">
+                    <form class="needs-validation" id="formularioFamiliar" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="familiar_form" value="1" />
+
+                        <div class="row g-2">
+                            <div class="col-md-9">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="nome" name="nome" placeholder="Nome" required>
+                                    <label for="nome">Nome</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="nome_social" name="nome_social" placeholder="Nome Social">
+                                    <label for="nome_social">Nome Social</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="date" class="form-control" id="data_nascimento" name="data_nascimento" placeholder="Data de Nascimento">
+                                    <label for="data_nascimento">Data de Nascimento</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <select class="form-select" id="sexo_biologico" name="sexo_biologico" aria-label="Sexo Biológico">
+                                        <option selected value="">Escolha uma opção</option>
+                                        {% for value, label in cadastro.SEXO_BIOLOGICO_CHOICES %}
+                                            <option value="{{ value }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <label for="sexo_biologico">Sexo Biológico</label>
+                                </div>
+                            </div>
+                            <div class="col-md">
+                                <div class="form-floating">
+                                    <select class="form-select" id="identidade_etnico_racial" name="identidade_etnico_racial" aria-label="Identidade étnico-racial">
+                                        <option selected value="">Escolha uma opção</option>
+                                        {% for value, label in cadastro.ETNIA_CHOICES %}
+                                            <option value="{{ value }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <label for="identidade_etnico_racial">Identidade étnico-racial</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 ms-2">
+                            <label for="pessoa_transexual" class="radio-inline control-label">Pessoa autodeclarada transexual ou travesti?</label>
+                            <div class="btn-group col-md-5" role="group">
+                                <input type="radio" class="btn-check" id="pessoa_transexual_sim" name="pessoa_transexual" value="1" autocomplete="off">
+                                <label class="btn btn-outline-primary col-md" for="pessoa_transexual_sim">Sim</label>
+                                <input type="radio" class="btn-check" id="pessoa_transexual_nao" name="pessoa_transexual" value="0" autocomplete="off">
+                                <label class="btn btn-outline-primary col-md" for="pessoa_transexual_nao">Não</label>
+                            </div>
+                        </div>
+
+                        <div class="row g-2">
+                            <div class="col-md">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="cpf_numero" name="cpf_numero" placeholder="Número do CPF" maxlength="14">
+                                    <label for="cpf_numero">Número do CPF</label>
+                                </div>
+                            </div>
+                            <div class="col-md">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="nis_numero" name="nis_numero" placeholder="Número do NIS (CadÚnico)" maxlength="11">
+                                    <label for="nis_numero">Número do NIS (CadÚnico)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-2 row">
+                            <label class="control-label">Documentação que possui</label>
+                            <div class="btn-group col-md" role="group">
+                                <div class="col-md row">
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_possui_1" name="documentos_possui" value="Certidão de Nascimento"><label class="form-check-label" for="doc_possui_1">Certidão de Nascimento</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_possui_2" name="documentos_possui" value="RG"><label class="form-check-label" for="doc_possui_2">RG</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_possui_3" name="documentos_possui" value="CPF"><label class="form-check-label" for="doc_possui_3">CPF</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_possui_4" name="documentos_possui" value="Carteira de Trabalho"><label class="form-check-label" for="doc_possui_4">Carteira de Trabalho</label></div>
+                                </div>
+                                <div class="col-md row">
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_possui_5" name="documentos_possui" value="Título de Eleitor"><label class="form-check-label" for="doc_possui_5">Título de Eleitor</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_possui_6" name="documentos_possui" value="Certificado de Escolaridade"><label class="form-check-label" for="doc_possui_6">Certificado de Escolaridade</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_possui_7" name="documentos_possui" value="Documento Militar"><label class="form-check-label" for="doc_possui_7">Documento Militar</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_possui_8" name="documentos_possui" value="CNH"><label class="form-check-label" for="doc_possui_8">CNH</label></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-2 row">
+                            <label class="control-label">Documentação Ausente, que não possui ou está precisando providenciar</label>
+                            <div class="btn-group col-md" role="group">
+                                <div class="col-md row">
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_ausente_1" name="documentos_ausentes" value="Certidão de Nascimento"><label class="form-check-label" for="doc_ausente_1">Certidão de Nascimento</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_ausente_2" name="documentos_ausentes" value="Certidão de Nascimento (2ª Via)"><label class="form-check-label" for="doc_ausente_2">Certidão de Nascimento (2ª Via)</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_ausente_3" name="documentos_ausentes" value="RG"><label class="form-check-label" for="doc_ausente_3">RG</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_ausente_4" name="documentos_ausentes" value="RG (2ª Via)"><label class="form-check-label" for="doc_ausente_4">RG (2ª Via)</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_ausente_5" name="documentos_ausentes" value="CPF"><label class="form-check-label" for="doc_ausente_5">CPF</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_ausente_6" name="documentos_ausentes" value="CPF (2ª Via)"><label class="form-check-label" for="doc_ausente_6">CPF (2ª Via)</label></div>
+                                </div>
+                                <div class="col-md row">
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_ausente_7" name="documentos_ausentes" value="Carteira de Trabalho"><label class="form-check-label" for="doc_ausente_7">Carteira de Trabalho</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_ausente_8" name="documentos_ausentes" value="Carteira de Trabalho (2ª Via)"><label class="form-check-label" for="doc_ausente_8">Carteira de Trabalho (2ª Via)</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_ausente_9" name="documentos_ausentes" value="Título de Eleitor"><label class="form-check-label" for="doc_ausente_9">Título de Eleitor</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_ausente_10" name="documentos_ausentes" value="Título de Eleitor (2ª Via)"><label class="form-check-label" for="doc_ausente_10">Título de Eleitor (2ª Via)</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_ausente_11" name="documentos_ausentes" value="Documento Militar"><label class="form-check-label" for="doc_ausente_11">Documento Militar</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="doc_ausente_12" name="documentos_ausentes" value="Documento Militar (2ª Via)"><label class="form-check-label" for="doc_ausente_12">Documento Militar (2ª Via)</label></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input class="form-control" list="Opcoesparentesco" id="parentesco" name="parentesco" placeholder="Parentesco">
+                                    <datalist id="Opcoesparentesco">
+                                        <option value="Pai"></option>
+                                        <option value="Mãe"></option>
+                                        <option value="Companheiro"></option>
+                                        <option value="Companheira"></option>
+                                        <option value="Esposo"></option>
+                                        <option value="Esposa"></option>
+                                        <option value="Filho"></option>
+                                        <option value="Filha"></option>
+                                        <option value="Irmão"></option>
+                                        <option value="Irmã"></option>
+                                        <option value="Tio"></option>
+                                        <option value="Tia"></option>
+                                        <option value="Avô"></option>
+                                        <option value="Avó"></option>
+                                        <option value="Sobrinho"></option>
+                                        <option value="Sobrinha"></option>
+                                        <option value="Cunhado"></option>
+                                        <option value="Cunhada"></option>
+                                        <option value="Primo"></option>
+                                        <option value="Prima"></option>
+                                        <option value="Enteado"></option>
+                                        <option value="Enteada"></option>
+                                        <option value="Outro"></option>
+                                    </datalist>
+                                    <label for="parentesco">Parentesco</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input class="form-control" id="bairro" name="bairro" placeholder="Bairro">
+                                    <label for="bairro">Bairro</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <label>Contato Telefônico</label>
+                            <div class="col-md">
+                                <div class="form-floating"><input type="text" class="form-control" id="telefone_numero" name="telefone_numero" placeholder="Número"><label for="telefone_numero">Número</label></div>
+                            </div>
+                            <div class="col-md">
+                                <div class="form-floating"><input type="text" class="form-control" id="telefone_contato" name="telefone_contato" placeholder="De quem é o número"><label for="telefone_contato">De quem é o número</label></div>
+                            </div>
+                            <div class="col-md">
+                                <div class="form-floating"><input type="text" class="form-control" id="telefone_observacao" name="telefone_observacao" placeholder="Observações"><label for="telefone_observacao">Observações</label></div>
+                            </div>
+                        </div>
+
+                        <div class="row g-1">
+                            <div class="col-md">
+                                <div class="form-floating"><input type="email" class="form-control" id="email_contato" name="email_contato" placeholder="E-mail"><label for="email_contato">E-mail</label></div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="ghost-button" id="cancelFamiliarModal">Cancelar</button>
+                            <button type="submit" class="primary-button">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const novoButton = document.getElementById('novoButton');
+        const novoMenu = document.getElementById('novoMenu');
+        const toggleButtons = document.querySelectorAll('.menu__item--toggle');
+        const userMenuToggle = document.getElementById('userMenuToggle');
+        const userMenuDropdown = document.getElementById('userMenuDropdown');
+
+        if (novoButton) {
+            novoButton.addEventListener('click', () => {
+                novoMenu.classList.toggle('is-open');
+            });
+        }
+
+        toggleButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const target = document.getElementById(button.dataset.target);
+                if (target) target.classList.toggle('is-open');
+            });
+        });
+
+        if (userMenuToggle) {
+            userMenuToggle.addEventListener('click', () => {
+                userMenuDropdown.classList.toggle('is-open');
+            });
+        }
+
+        const familiarModal = document.getElementById('familiarModal');
+        const openFamiliarModal = document.getElementById('openFamiliarModal');
+        const closeFamiliarModal = document.getElementById('closeFamiliarModal');
+        const cancelFamiliarModal = document.getElementById('cancelFamiliarModal');
+
+        const closeModal = () => {
+            if (familiarModal) familiarModal.classList.remove('show');
+        };
+
+        if (openFamiliarModal) {
+            openFamiliarModal.addEventListener('click', () => {
+                familiarModal.classList.add('show');
+            });
+        }
+
+        if (closeFamiliarModal) closeFamiliarModal.addEventListener('click', closeModal);
+        if (cancelFamiliarModal) cancelFamiliarModal.addEventListener('click', closeModal);
+
+        const onlyDigits = (value) => value.replace(/\D/g, '');
+        const formatCpf = (value) => {
+            let v = onlyDigits(value).slice(0, 11);
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            return v;
+        };
+        const formatNis = (value) => {
+            let v = onlyDigits(value).slice(0, 11);
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})\.(\d{5})(\d)/, '$1.$2.$3');
+            v = v.replace(/(\d{3})\.(\d{5})\.(\d{2})(\d{1})$/, '$1.$2.$3-$4');
+            return v;
+        };
+        const applyMask = (id, formatter) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const handler = () => {
+                el.value = formatter(el.value);
+            };
+            el.addEventListener('input', handler);
+            handler();
+        };
+
+        applyMask('cpf_numero', formatCpf);
+        applyMask('nis_numero', formatNis);
+    </script>
+    <script src="{% static 'core/main_search.js' %}"></script>
+</body>
+</html>

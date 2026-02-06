@@ -1,0 +1,420 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Criar Novo Cadastro</title>
+    <link rel="stylesheet" href="{% static 'core/home.css' %}" />
+    <link rel="stylesheet" href="{% static 'core/cadastro.css' %}" />
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <a class="brand" href="/home/">REEDUC</a>
+            <button class="new-button" id="novoButton">
+                <span class="icon">+</span>
+                <span>Novo</span>
+            </button>
+            <div class="new-menu" id="novoMenu">
+                <a href="/home/cadastro/adicionar">Cadastro</a>
+                <a href="/atendimentos/adicionar">Atendimento</a>
+                <a href="/agendamentos/adicionar">Agendamento</a>
+            </div>
+            <nav class="menu">
+                <div class="menu-group">
+                    <button class="menu__item menu__item--toggle" type="button" data-target="cadastros-submenu">
+                        Cadastros
+                        <span class="caret">▾</span>
+                    </button>
+                    <div class="submenu" id="cadastros-submenu">
+                        <a class="submenu__item" href="/home/cadastros">Todos</a>
+                        <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
+                        <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
+                        <a class="submenu__item" href="/home/cadastros/familiares">Familiares</a>
+                    </div>
+                </div>
+                <a class="menu__item" href="/agendamentos">Agendamentos</a>
+                <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
+                <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
+            </nav>
+        </aside>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="search">
+                    <input type="text" placeholder="buscar..." />
+                    <span class="search__icon">🔍</span>
+                </div>
+                <div class="user-menu" id="userMenu">
+                    <div class="avatar" id="userMenuToggle">👤</div>
+                    <div class="user-menu__dropdown" id="userMenuDropdown">
+                        <div class="user-menu__title">Usuário</div>
+                        <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
+                        <a href="/atividades/minhasatividades">Minhas Atividades</a>
+                        <a href="/sair">Sair</a>
+                        {% if request.user.is_staff %}
+                        <div class="user-menu__title">Admin</div>
+                        <a href="/administrar/usuarios">Gerenciar Usuários</a>
+                        <a href="/administrar/adicionarUsuario">Adicionar Usuário</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+
+            <section class="content">
+                <h1>Criar Novo Cadastro - Identificação</h1>
+
+                <form method="post" class="form">
+                    {% csrf_token %}
+                    {% if form.errors %}
+                    <div class="form-errors">
+                        <strong>Verifique os campos abaixo:</strong>
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <section class="form-section">
+                        <h2>Dados pessoais</h2>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="id_nome">Nome</label>
+                                {{ form.nome }}
+                            </div>
+                            <div class="field">
+                                <label for="id_sexo_biologico">Sexo biológico <span class="tooltip" title="{{ form.sexo_biologico.help_text }}">i</span></label>
+                                {{ form.sexo_biologico }}
+                            </div>
+                            <div class="field">
+                                <label for="id_nome_social">Nome social</label>
+                                {{ form.nome_social }}
+                            </div>
+                            <div class="field">
+                                <label for="id_identidade_genero">Identidade de gênero <span class="tooltip" title="{{ form.identidade_genero.help_text }}">i</span></label>
+                                {{ form.identidade_genero }}
+                            </div>
+                            <div class="field">
+                                <label for="id_identidade_sexual">Identidade sexual <span class="tooltip" title="{{ form.identidade_sexual.help_text }}">i</span></label>
+                                {{ form.identidade_sexual }}
+                            </div>
+                            <div class="field switch">
+                                <label for="id_pessoa_transexual">Pessoa transexual/travesti <span class="tooltip" title="{{ form.pessoa_transexual.help_text }}">i</span></label>
+                                {{ form.pessoa_transexual }}
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2>Dados complementares</h2>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="id_data_nascimento">Data de nascimento</label>
+                                {{ form.data_nascimento }}
+                            </div>
+                            <div class="field">
+                                <label for="id_naturalidade">Naturalidade</label>
+                                {{ form.naturalidade }}
+                            </div>
+                            <div class="field">
+                                <label for="data_cadastro">Data de cadastro <span class="tooltip" title="Gerado automaticamente pelo sistema.">i</span></label>
+                                <input type="date" id="data_cadastro" value="{% now 'Y-m-d' %}" readonly />
+                            </div>
+                            <div class="field">
+                                <label for="id_religiao">Religião <span class="tooltip" title="{{ form.religiao.help_text }}">i</span></label>
+                                {{ form.religiao }}
+                            </div>
+                            <div class="field" data-conditional="religiao">
+                                <label for="id_religiao_desde_quando">Desde quando?</label>
+                                {{ form.religiao_desde_quando }}
+                            </div>
+                            <div class="field">
+                                <label for="id_identidade_etnico_racial">Identidade étnico-racial</label>
+                                {{ form.identidade_etnico_racial }}
+                            </div>
+                            <div class="field">
+                                <label for="id_estado_civil">Estado civil</label>
+                                {{ form.estado_civil }}
+                            </div>
+                            <div class="field">
+                                <label for="id_nome_mae">Nome da mãe</label>
+                                {{ form.nome_mae }}
+                            </div>
+                            <div class="field">
+                                <label for="id_nome_pai">Nome do pai</label>
+                                {{ form.nome_pai }}
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2>Status Ocupacional</h2>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="id_status_ocupacional">Status Ocupacional</label>
+                                {{ form.status_ocupacional }}
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2>Percurso Educacional</h2>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="id_grau_instrucao">Grau de instrução</label>
+                                {{ form.grau_instrucao }}
+                            </div>
+                            <div class="field">
+                                <label for="id_serie_concluida">Estudou até que série? (qual a última série concluída)</label>
+                                {{ form.serie_concluida }}
+                            </div>
+                        </div>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="id_fez_ensino_superior">Fez ensino superior?</label>
+                                {{ form.fez_ensino_superior }}
+                            </div>
+                            <div class="field">
+                                <label for="id_curso_superior">Se sim, qual curso?</label>
+                                {{ form.curso_superior }}
+                            </div>
+                        </div>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="id_experiencia_escolar">Conte um pouco sobre a experiência escolar</label>
+                                {{ form.experiencia_escolar }}
+                            </div>
+                        </div>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="id_estuda_atualmente">Estuda atualmente?</label>
+                                {{ form.estuda_atualmente }}
+                            </div>
+                            <div class="field">
+                                <label for="id_horario_turno_estudo">Se sim, qual horário/turno?</label>
+                                {{ form.horario_turno_estudo }}
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2>Documentação</h2>
+                        <div class="grid grid--checks">
+                            <label class="check">{{ form.doc_certidao_nascimento }} Certidão de nascimento</label>
+                            <label class="check">{{ form.doc_rg }} RG</label>
+                            <label class="check">{{ form.doc_cpf }} CPF</label>
+                            <label class="check">{{ form.doc_ctps }} Carteira de trabalho</label>
+                            <label class="check">{{ form.doc_titulo_eleitor }} Título de eleitor</label>
+                            <label class="check">{{ form.doc_cert_escolaridade }} Certificado de escolaridade</label>
+                            <label class="check">{{ form.doc_documento_militar }} Documento militar</label>
+                            <label class="check">{{ form.doc_cnh }} CNH</label>
+                        </div>
+
+                        <h3>Documentação ausente</h3>
+                        <div class="grid grid--checks">
+                            <label class="check">{{ form.doc_ausente_certidao_1 }} Certidão de nascimento (1ª via)</label>
+                            <label class="check">{{ form.doc_ausente_certidao_2 }} Certidão de nascimento (2ª via)</label>
+                            <label class="check">{{ form.doc_ausente_rg_1 }} RG (1ª via)</label>
+                            <label class="check">{{ form.doc_ausente_rg_2 }} RG (2ª via)</label>
+                            <label class="check">{{ form.doc_ausente_cpf_1 }} CPF (1ª via)</label>
+                            <label class="check">{{ form.doc_ausente_cpf_2 }} CPF (2ª via)</label>
+                            <label class="check">{{ form.doc_ausente_ctps_1 }} Carteira de trabalho (1ª via)</label>
+                            <label class="check">{{ form.doc_ausente_ctps_2 }} Carteira de trabalho (2ª via)</label>
+                            <label class="check">{{ form.doc_ausente_titulo_1 }} Título de eleitor (1ª via)</label>
+                            <label class="check">{{ form.doc_ausente_titulo_2 }} Título de eleitor (2ª via)</label>
+                            <label class="check">{{ form.doc_ausente_documento_militar_1 }} Documento militar (1ª via)</label>
+                            <label class="check">{{ form.doc_ausente_documento_militar_2 }} Documento militar (2ª via)</label>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2>Dados de documentos</h2>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="id_cpf_numero">CPF</label>
+                                {{ form.cpf_numero }}
+                            </div>
+                            <div class="field">
+                                <label for="id_rg_numero">RG</label>
+                                {{ form.rg_numero }}
+                            </div>
+                            <div class="field">
+                                <label for="id_titulo_eleitor_numero">Título de eleitor</label>
+                                {{ form.titulo_eleitor_numero }}
+                            </div>
+                            <div class="field">
+                                <label for="id_numero_processo_pep">Número do processo/PEP</label>
+                                {{ form.numero_processo_pep }}
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="id_cnh_categoria">Categoria da CNH</label>
+                            <div class="inline-options">
+                                {% for radio in form.cnh_categoria %}
+                                    <label class="radio">{{ radio.tag }} {{ radio.choice_label }}</label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2>Informações de atendimento</h2>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="id_procedencia">Chegou ao serviço por meio de</label>
+                                {{ form.procedencia }}
+                            </div>
+                            <div class="field" data-conditional="procedencia">
+                                <label for="id_procedencia_outro">Se outro, qual?</label>
+                                {{ form.procedencia_outro }}
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="id_motivo_procura">Motivo da procura/encaminhamento</label>
+                            {{ form.motivo_procura }}
+                        </div>
+                        <div class="field switch">
+                            <label for="id_orientado_escritorio_social">Recebeu informações ou foi orientado(a) sobre o Escritório Social na Unidade Prisional?</label>
+                            {{ form.orientado_escritorio_social }}
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2>Endereço e contatos</h2>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="id_endereco">Endereço</label>
+                                {{ form.endereco }}
+                            </div>
+                            <div class="field">
+                                <label for="id_bairro">Bairro</label>
+                                {{ form.bairro }}
+                            </div>
+                            <div class="field">
+                                <label for="id_cidade">Cidade</label>
+                                {{ form.cidade }}
+                            </div>
+                            <div class="field">
+                                <label for="id_estado_uf">Estado/UF</label>
+                                {{ form.estado_uf }}
+                            </div>
+                            <div class="field">
+                                <label for="id_ponto_referencia">Ponto de referência</label>
+                                {{ form.ponto_referencia }}
+                            </div>
+                            <div class="field">
+                                <label for="id_zona_cidade">Zona da cidade</label>
+                                {{ form.zona_cidade }}
+                            </div>
+                        </div>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="id_telefone_numero">Telefone</label>
+                                {{ form.telefone_numero }}
+                            </div>
+                            <div class="field">
+                                <label for="id_telefone_contato">Pessoa de contato</label>
+                                {{ form.telefone_contato }}
+                            </div>
+                            <div class="field">
+                                <label for="id_email_contato">E-mail de contato</label>
+                                {{ form.email_contato }}
+                            </div>
+                        </div>
+                        <button type="button" class="ghost-button">Adicionar telefone</button>
+                    </section>
+
+                    <div class="actions">
+                        <button type="submit" class="primary-button">Salvar cadastro</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const novoButton = document.getElementById('novoButton');
+        const novoMenu = document.getElementById('novoMenu');
+        const toggleButtons = document.querySelectorAll('.menu__item--toggle');
+
+        if (novoButton) {
+            novoButton.addEventListener('click', () => {
+                novoMenu.classList.toggle('is-open');
+            });
+        }
+
+        toggleButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const target = document.getElementById(button.dataset.target);
+                if (target) target.classList.toggle('is-open');
+            });
+        });
+
+        const userMenuToggle = document.getElementById('userMenuToggle');
+        const userMenuDropdown = document.getElementById('userMenuDropdown');
+        const religiaoField = document.getElementById('id_religiao');
+        const procedenciaField = document.getElementById('id_procedencia');
+
+        function toggleConditional(selector, show) {
+            document.querySelectorAll(`[data-conditional="${selector}"]`).forEach((el) => {
+                el.style.display = show ? 'block' : 'none';
+            });
+        }
+
+        function handleReligiao() {
+            toggleConditional('religiao', religiaoField && religiaoField.value);
+        }
+
+        function handleProcedencia() {
+            toggleConditional('procedencia', procedenciaField && procedenciaField.value === 'outro');
+        }
+
+        handleReligiao();
+        handleProcedencia();
+        if (religiaoField) religiaoField.addEventListener('change', handleReligiao);
+        if (procedenciaField) procedenciaField.addEventListener('change', handleProcedencia);
+        if (userMenuToggle) {
+            userMenuToggle.addEventListener('click', () => {
+                userMenuDropdown.classList.toggle('is-open');
+            });
+        }
+
+        const onlyDigits = (value) => value.replace(/\D/g, '');
+        const formatCpf = (value) => {
+            let v = onlyDigits(value).slice(0, 11);
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            return v;
+        };
+        const formatRg = (value) => {
+            let v = onlyDigits(value).slice(0, 9);
+            v = v.replace(/(\d{2})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d{1})$/, '$1-$2');
+            return v;
+        };
+        const formatTitulo = (value) => {
+            let v = onlyDigits(value).slice(0, 12);
+            v = v.replace(/(\d{4})(\d)/, '$1 $2');
+            v = v.replace(/(\d{4})(\d)/, '$1 $2');
+            v = v.replace(/(\d{4})(\d{1,4})$/, '$1 $2');
+            return v.trim();
+        };
+
+        const applyMask = (id, formatter) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const handler = () => {
+                el.value = formatter(el.value);
+            };
+            el.addEventListener('input', handler);
+            handler();
+        };
+
+        applyMask('id_cpf_numero', formatCpf);
+        applyMask('id_rg_numero', formatRg);
+        applyMask('id_titulo_eleitor_numero', formatTitulo);
+    </script>
+    <script src="{% static 'core/main_search.js' %}"></script>
+</body>
+</html>

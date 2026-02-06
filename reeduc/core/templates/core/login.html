@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Entrar no REEDUC - PI</title>
+    <link rel="stylesheet" href="{% static 'core/login.css' %}" />
+</head>
+<body>
+    <main class="page">
+        <section class="card">
+            <header class="card__header">
+                <h1>Entrar no REEDUC - PI</h1>
+                <p>Sistema de Cadastro e Acompanhamento de Reintegração de Egressos</p>
+            </header>
+            <form class="card__form" method="post" action="">
+                {% csrf_token %}
+                <input type="hidden" name="redirect" value="{{ redirect_to }}" />
+                {% if error %}
+                <p class="form-error">{{ error }}</p>
+                {% endif %}
+                <label class="field">
+                    <span class="sr-only">Nome de usuário ou e-mail</span>
+                    <input
+                        type="text"
+                        name="username"
+                        placeholder="Nome de usuário ou e-mail"
+                        autocomplete="username"
+                        required
+                    />
+                </label>
+                <label class="field">
+                    <span class="sr-only">Senha</span>
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Senha"
+                        autocomplete="current-password"
+                        required
+                    />
+                </label>
+                <button type="submit" class="primary-button">Entrar</button>
+            </form>
+        </section>
+        <footer class="footer">
+            SECRETARIA DE JUSTIÇA DO PIAUÍ
+        </footer>
+    </main>
+</body>
+</html>
