@@ -37,6 +37,17 @@ Credenciais solicitadas:
 python manage.py migrate
 ```
 
+## Desenvolvimento local (SQLite)
+Para usar o banco local `db.sqlite3`:
+```bash
+python manage.py migrate
+```
+
+## Criar superusuario
+```bash
+python manage.py createsuperuser
+```
+
 ## Executar
 ```bash
 python manage.py runserver
