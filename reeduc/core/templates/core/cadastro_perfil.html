@@ -12,7 +12,7 @@
 <body>
     <div class="layout">
         <aside class="sidebar">
-            <a class="brand" href="/home/">REEDUC</a>
+            <a class="brand" href="/home/">ESPI</a>
             <button class="new-button" id="novoButton">
                 <span class="icon">+</span>
                 <span>Novo</span>
@@ -37,6 +37,7 @@
                 </div>
                 <a class="menu__item" href="/agendamentos">Agendamentos</a>
                 <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
+                <a class="menu__item" href="/familiares/adicionar">Familiar</a>
                 <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
             </nav>
         </aside>
@@ -109,6 +110,12 @@
                             <p><strong>UF:</strong> {{ cadastro.estado_uf|default:"-" }}</p>
                             <p><strong>Ponto de referência:</strong> {{ cadastro.ponto_referencia|default:"-" }}</p>
                             <p><strong>Zona:</strong> {{ cadastro.get_zona_cidade_display|default:"-" }}</p>
+                        </div>
+
+                        <div class="perfil-documentos">
+                            <h3>Encaminhamentos</h3>
+                            <p><strong>Encaminhamento:</strong> {{ cadastro.get_encaminhamento_display|default:"-" }}</p>
+                            <p><strong>Detalhes:</strong> {{ cadastro.encaminhamento_detalhe|default:"-" }}</p>
                         </div>
 
                         <div class="perfil-documentos">

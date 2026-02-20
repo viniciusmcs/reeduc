@@ -21,6 +21,7 @@
                 <a href="/home/cadastro/adicionar">Cadastro</a>
                 <a href="/atendimentos/adicionar">Atendimento</a>
                 <a href="/agendamentos/adicionar">Agendamento</a>
+                <a href="/familiares/adicionar">Familiar</a>
             </div>
             <nav class="menu">
                 <div class="menu-group">
@@ -32,7 +33,7 @@
                         <a class="submenu__item" href="/home/cadastros">Todos</a>
                         <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
                         <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
-                        <a class="submenu__item" href="/home/cadastros/familiares">Familiares</a>
+                        <a class="submenu__item" href="/familiares">Familiares</a>
                     </div>
                 </div>
                 <a class="menu__item" href="/agendamentos">Agendamentos</a>
@@ -55,48 +56,35 @@
                         <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
                         <a href="/atividades/minhasatividades">Minhas Atividades</a>
                         <a href="/sair">Sair</a>
-                        {% if request.user.is_staff %}
-                        <div class="user-menu__title">Admin</div>
-                        <a href="/administrar/usuarios">Gerenciar Usuários</a>
-                        <a href="/administrar/adicionarUsuario">Adicionar Usuário</a>
-                        {% endif %}
                     </div>
                 </div>
             </header>
 
             <section class="content">
-                {% csrf_token %}
                 <div class="perfil-header">
                     <div>
                         <h1>{{ familiar.nome }}</h1>
-                        <p>Vínculo: {{ familiar.parentesco|default:"-" }} - {{ familiar.cadastro.nome }}</p>
+                        <p>Familiar sem vínculo com cadastro de interno no sistema</p>
                     </div>
-                </div>
-
-                <div class="perfil-tabs">
-                    <a class="tab nav-link" href="/cadastro/perfil/{{ familiar.cadastro_id }}">Perfil</a>
-                    <a class="tab nav-link active" href="/cadastro/familiares/{{ familiar.cadastro_id }}">Familiares</a>
-                    <a class="tab nav-link" href="/cadastro/atendimentos/{{ familiar.cadastro_id }}">Atendimentos</a>
-                    <a class="tab nav-link" href="/cadastro/agendamentos/{{ familiar.cadastro_id }}">Agendamentos</a>
                 </div>
 
                 <section class="perfil-card">
                     <div class="perfil-grid">
-                        <div class="foto-placeholder" id="fotoPlaceholder" title="Clique para enviar uma foto">
+                        <div class="foto-placeholder">
                             {% if familiar.foto %}
                                 <img src="{{ familiar.foto.url }}" alt="Foto do familiar" style="width: 100%; height: 100%; object-fit: cover;">
                             {% else %}
-                                <span>Clique para adicionar foto</span>
+                                <span>Sem foto</span>
                             {% endif %}
                         </div>
-                        <input type="file" id="fotoInput" style="display: none;" accept="image/png,image/jpeg">
                         <div class="perfil-info">
                             <p><strong>Nome:</strong> {{ familiar.nome }}</p>
                             <p><strong>Nome social:</strong> {{ familiar.nome_social|default:"-" }}</p>
                             <p><strong>Data de nascimento:</strong> {{ familiar.data_nascimento|date:"d/m/Y"|default:"-" }}</p>
-                            <p><strong>Sexo biológico:</strong> {{ familiar.get_sexo_biologico_display|default:"-" }}</p>
-                            <p><strong>Identidade étnico-racial:</strong> {{ familiar.get_identidade_etnico_racial_display|default:"-" }}</p>
                             <p><strong>Parentesco:</strong> {{ familiar.parentesco|default:"-" }}</p>
+                            <p><strong>Nome do interno:</strong> {{ familiar.nome_interno_referencia|default:"-" }}</p>
+                            <p><strong>Interno é egresso:</strong> {% if familiar.perfil_referencia_egresso %}Sim{% else %}Não{% endif %}</p>
+                            <p><strong>Interno é pré-egresso:</strong> {% if familiar.perfil_referencia_pre_egresso %}Sim{% else %}Não{% endif %}</p>
                         </div>
                     </div>
 
@@ -134,70 +122,38 @@
                     </div>
 
                     <div class="perfil-actions-row">
-                        <a class="primary-button" href="/cadastro/familiares/editar/{{ familiar.id }}">Editar</a>
-                        <a class="ghost-button" href="/cadastro/familiares/excluir/{{ familiar.id }}">Excluir</a>
-                        <a class="ghost-button" href="/cadastro/familiares/{{ familiar.cadastro_id }}">Voltar</a>
+                        <a class="primary-button" href="/familiares/{{ familiar.id }}/editar">Editar</a>
+                        <a class="ghost-button" href="/familiares/{{ familiar.id }}/excluir">Excluir</a>
+                        <a class="ghost-button" href="/familiares">Voltar</a>
                     </div>
                 </section>
             </section>
         </div>
     </div>
-    <script>
-        const fotoInput = document.getElementById('fotoInput');
-        const fotoPlaceholder = document.getElementById('fotoPlaceholder');
-        const familiarId = window.location.pathname.split('/').slice(-1)[0];
 
-        if (fotoPlaceholder) {
-            fotoPlaceholder.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (fotoInput) {
-                    fotoInput.click();
-                }
+    <script>
+        const novoButton = document.getElementById('novoButton');
+        const novoMenu = document.getElementById('novoMenu');
+        const toggleButtons = document.querySelectorAll('.menu__item--toggle');
+        const userMenuToggle = document.getElementById('userMenuToggle');
+        const userMenuDropdown = document.getElementById('userMenuDropdown');
+
+        if (novoButton) {
+            novoButton.addEventListener('click', () => {
+                novoMenu.classList.toggle('is-open');
             });
         }
 
-        if (fotoInput) {
-            fotoInput.addEventListener('change', async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
+        toggleButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const target = document.getElementById(button.dataset.target);
+                if (target) target.classList.toggle('is-open');
+            });
+        });
 
-                const validTypes = ['image/png', 'image/jpeg'];
-                if (!validTypes.includes(file.type)) {
-                    alert('Por favor, selecione apenas arquivos PNG ou JPEG');
-                    fotoInput.value = '';
-                    return;
-                }
-
-                const formData = new FormData();
-                formData.append('foto', file);
-
-                try {
-                    const response = await fetch(`/cadastro/familiares/${familiarId}/foto`, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]') ?
-                                document.querySelector('[name=csrfmiddlewaretoken]').value : ''
-                        }
-                    });
-
-                    const data = await response.json();
-
-                    if (data.status === 'success') {
-                        const fotoUrl = data.foto_url ? `${data.foto_url}?t=${Date.now()}` : null;
-                        if (fotoUrl) {
-                            fotoPlaceholder.innerHTML = `<img src="${fotoUrl}" alt="Foto do familiar" style="width: 100%; height: 100%; object-fit: cover;">`;
-                        }
-                        alert('Foto enviada com sucesso!');
-                    } else {
-                        alert(data.message || 'Erro ao enviar a foto');
-                    }
-                } catch (error) {
-                    console.error('Erro:', error);
-                    alert('Erro ao enviar a foto');
-                } finally {
-                    fotoInput.value = '';
-                }
+        if (userMenuToggle) {
+            userMenuToggle.addEventListener('click', () => {
+                userMenuDropdown.classList.toggle('is-open');
             });
         }
     </script>

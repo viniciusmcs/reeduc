@@ -11,7 +11,7 @@
 <body>
     <div class="layout">
         <aside class="sidebar">
-            <a class="brand" href="/home/">REEDUC</a>
+            <a class="brand" href="/home/">ESPI</a>
             <button class="new-button" id="novoButton">
                 <span class="icon">+</span>
                 <span>Novo</span>
@@ -36,6 +36,7 @@
                 </div>
                 <a class="menu__item" href="/agendamentos">Agendamentos</a>
                 <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
+                <a class="menu__item" href="/familiares/adicionar">Familiar</a>
                 <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
             </nav>
         </aside>
@@ -113,7 +114,7 @@
                                     <th>Data</th>
                                     <th>Atividade</th>
                                     <th>Técnico Responsável</th>
-                                    <th>Reeducando(a)</th>
+                                    <th>Egresso(a)</th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
@@ -123,7 +124,7 @@
                                     <td>{{ item.data|date:"d/m/Y" }}</td>
                                     <td>{{ item.atividade }}</td>
                                     <td>{{ item.tecnico|default:"-" }}</td>
-                                    <td>{{ item.reeducando|default:"-" }}</td>
+                                    <td>{{ item.egresso|default:"-" }}</td>
                                     <td>
                                         {% if item.acoes.ver %}
                                             <a href="{{ item.acoes.ver }}" style="color: #2563eb; text-decoration: none; margin-right: 8px;" title="Ver">👁️</a>

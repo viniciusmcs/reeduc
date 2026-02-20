@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Detalhe do Cadastro</title>
+    <title>Familiares sem vínculo</title>
     <link rel="stylesheet" href="{% static 'core/home.css' %}" />
     <link rel="stylesheet" href="{% static 'core/cadastro.css' %}" />
 </head>
@@ -20,6 +20,7 @@
                 <a href="/home/cadastro/adicionar">Cadastro</a>
                 <a href="/atendimentos/adicionar">Atendimento</a>
                 <a href="/agendamentos/adicionar">Agendamento</a>
+                <a href="/familiares/adicionar">Familiar</a>
             </div>
             <nav class="menu">
                 <div class="menu-group">
@@ -31,7 +32,7 @@
                         <a class="submenu__item" href="/home/cadastros">Todos</a>
                         <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
                         <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
-                        <a class="submenu__item" href="/home/cadastros/familiares">Familiares</a>
+                        <a class="submenu__item" href="/familiares">Familiares</a>
                     </div>
                 </div>
                 <a class="menu__item" href="/agendamentos">Agendamentos</a>
@@ -54,37 +55,56 @@
                         <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
                         <a href="/atividades/minhasatividades">Minhas Atividades</a>
                         <a href="/sair">Sair</a>
-                        {% if request.user.is_staff %}
-                        <div class="user-menu__title">Admin</div>
-                        <a href="/administrar/usuarios">Gerenciar Usuários</a>
-                        <a href="/administrar/adicionarUsuario">Adicionar Usuário</a>
-                        {% endif %}
                     </div>
                 </div>
             </header>
 
             <section class="content">
-                <h1>Cadastro: {{ cadastro.nome }}</h1>
+                <h1>Familiares sem vínculo ({{ total }})</h1>
+                <div class="links-row">
+                    <a class="primary-button primary-button--no-bg" href="/familiares/adicionar">+ Cadastrar Familiar</a>
+                </div>
                 <section class="table-card">
                     <div class="table-card__body">
                         <table>
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Parentesco</th>
+                                    <th>Nome do interno</th>
+                                    <th>Perfil do interno</th>
+                                    <th>Telefone</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
                             <tbody>
-                                <tr><th>Nome</th><td>{{ cadastro.nome }}</td></tr>
-                                <tr><th>Nome social</th><td>{{ cadastro.nome_social }}</td></tr>
-                                <tr><th>Data de cadastro</th><td>{{ cadastro.data_cadastro|date:"d/m/Y" }}</td></tr>
-                                <tr><th>Status</th><td>{{ cadastro.get_status_display }}</td></tr>
-                                <tr><th>CPF</th><td>{{ cadastro.cpf_numero }}</td></tr>
-                                <tr><th>RG</th><td>{{ cadastro.rg_numero }}</td></tr>
-                                <tr><th>Telefone</th><td>{{ cadastro.telefone_numero }}</td></tr>
-                                <tr><th>E-mail</th><td>{{ cadastro.email_contato }}</td></tr>
+                                {% for familiar in familiares %}
+                                <tr>
+                                    <td>{{ familiar.nome }}</td>
+                                    <td>{{ familiar.parentesco|default:'-' }}</td>
+                                    <td>{{ familiar.nome_interno_referencia|default:'-' }}</td>
+                                    <td>
+                                        {% if familiar.perfil_referencia_egresso %}Egresso{% endif %}
+                                        {% if familiar.perfil_referencia_egresso and familiar.perfil_referencia_pre_egresso %} / {% endif %}
+                                        {% if familiar.perfil_referencia_pre_egresso %}Pré-egresso{% endif %}
+                                        {% if not familiar.perfil_referencia_egresso and not familiar.perfil_referencia_pre_egresso %}-{% endif %}
+                                    </td>
+                                    <td>{{ familiar.telefone_numero|default:'-' }}</td>
+                                    <td class="actions-cell">
+                                        <a class="icon-button" href="/familiares/{{ familiar.id }}/ver" title="Ver">👁</a>
+                                        <a class="icon-button" href="/familiares/{{ familiar.id }}/editar" title="Editar">✏</a>
+                                        <a class="icon-button icon-button--danger" href="/familiares/{{ familiar.id }}/excluir" title="Excluir">🗑</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6">Nenhum familiar sem vínculo cadastrado.</td>
+                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </section>
-                <div class="actions">
-                    <a class="primary-button" href="/home/cadastros/{{ cadastro.id }}/editar">Editar</a>
-                    <a class="ghost-button" href="/home/cadastros">Voltar</a>
-                </div>
             </section>
         </div>
     </div>

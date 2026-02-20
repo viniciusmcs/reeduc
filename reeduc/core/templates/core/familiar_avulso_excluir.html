@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Detalhe do Cadastro</title>
+    <title>Excluir Familiar</title>
     <link rel="stylesheet" href="{% static 'core/home.css' %}" />
     <link rel="stylesheet" href="{% static 'core/cadastro.css' %}" />
 </head>
@@ -20,6 +20,7 @@
                 <a href="/home/cadastro/adicionar">Cadastro</a>
                 <a href="/atendimentos/adicionar">Atendimento</a>
                 <a href="/agendamentos/adicionar">Agendamento</a>
+                <a href="/familiares/adicionar">Familiar</a>
             </div>
             <nav class="menu">
                 <div class="menu-group">
@@ -31,7 +32,7 @@
                         <a class="submenu__item" href="/home/cadastros">Todos</a>
                         <a class="submenu__item" href="/home/cadastros/ativos">Ativos</a>
                         <a class="submenu__item" href="/home/cadastros/arquivados">Arquivados</a>
-                        <a class="submenu__item" href="/home/cadastros/familiares">Familiares</a>
+                        <a class="submenu__item" href="/familiares">Familiares</a>
                     </div>
                 </div>
                 <a class="menu__item" href="/agendamentos">Agendamentos</a>
@@ -54,37 +55,19 @@
                         <a href="/usuario/perfil/{{ request.user.username }}">Meu Perfil</a>
                         <a href="/atividades/minhasatividades">Minhas Atividades</a>
                         <a href="/sair">Sair</a>
-                        {% if request.user.is_staff %}
-                        <div class="user-menu__title">Admin</div>
-                        <a href="/administrar/usuarios">Gerenciar Usuários</a>
-                        <a href="/administrar/adicionarUsuario">Adicionar Usuário</a>
-                        {% endif %}
                     </div>
                 </div>
             </header>
 
             <section class="content">
-                <h1>Cadastro: {{ cadastro.nome }}</h1>
-                <section class="table-card">
-                    <div class="table-card__body">
-                        <table>
-                            <tbody>
-                                <tr><th>Nome</th><td>{{ cadastro.nome }}</td></tr>
-                                <tr><th>Nome social</th><td>{{ cadastro.nome_social }}</td></tr>
-                                <tr><th>Data de cadastro</th><td>{{ cadastro.data_cadastro|date:"d/m/Y" }}</td></tr>
-                                <tr><th>Status</th><td>{{ cadastro.get_status_display }}</td></tr>
-                                <tr><th>CPF</th><td>{{ cadastro.cpf_numero }}</td></tr>
-                                <tr><th>RG</th><td>{{ cadastro.rg_numero }}</td></tr>
-                                <tr><th>Telefone</th><td>{{ cadastro.telefone_numero }}</td></tr>
-                                <tr><th>E-mail</th><td>{{ cadastro.email_contato }}</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-                <div class="actions">
-                    <a class="primary-button" href="/home/cadastros/{{ cadastro.id }}/editar">Editar</a>
-                    <a class="ghost-button" href="/home/cadastros">Voltar</a>
-                </div>
+                <h1>Excluir Familiar</h1>
+                <p>Tem certeza que deseja excluir <strong>{{ familiar.nome }}</strong>?</p>
+
+                <form method="post" style="margin-top: 12px;">
+                    {% csrf_token %}
+                    <button class="primary-button" type="submit">Confirmar exclusão</button>
+                    <a class="ghost-button" href="/familiares">Cancelar</a>
+                </form>
             </section>
         </div>
     </div>

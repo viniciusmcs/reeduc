@@ -5,6 +5,7 @@ Use ModelForms to keep validation close to the model (DRY).
 
 from django import forms
 from django.contrib.auth import get_user_model
+import re
 
 from .models import Agendamento, Atendimento, Cadastro, Familiar, Lembrete, UserProfile
 
@@ -27,6 +28,7 @@ class CadastroForm(forms.ModelForm):
             "fez_ensino_superior",
             "estuda_atualmente",
             "procedencia",
+            "encaminhamento",
             "zona_cidade",
         ]
         for name in select_fields:
@@ -44,6 +46,7 @@ class CadastroForm(forms.ModelForm):
             "pessoa_transexual",
             # Dados complementares
             "data_nascimento",
+            "data_cadastro",
             "naturalidade",
             "religiao",
             "religiao_desde_quando",
@@ -92,6 +95,8 @@ class CadastroForm(forms.ModelForm):
             "procedencia_outro",
             "motivo_procura",
             "orientado_escritorio_social",
+            "encaminhamento",
+            "encaminhamento_detalhe",
             # Endereço e contatos
             "endereco",
             "bairro",
@@ -106,7 +111,9 @@ class CadastroForm(forms.ModelForm):
         ]
         widgets = {
             "data_nascimento": forms.DateInput(attrs={"type": "date"}),
+            "data_cadastro": forms.DateInput(attrs={"type": "date"}),
             "motivo_procura": forms.Textarea(attrs={"rows": 3}),
+            "encaminhamento_detalhe": forms.Textarea(attrs={"rows": 3}),
             "experiencia_escolar": forms.Textarea(attrs={"rows": 3}),
             "cnh_categoria": forms.RadioSelect,
             "cpf_numero": forms.TextInput(attrs={"maxlength": "14"}),
@@ -270,6 +277,9 @@ class FamiliarForm(forms.ModelForm):
             "documentos_possui",
             "documentos_ausentes",
             "parentesco",
+            "perfil_referencia_egresso",
+            "perfil_referencia_pre_egresso",
+            "nome_interno_referencia",
             "bairro",
             "telefone_numero",
             "telefone_contato",
@@ -279,7 +289,13 @@ class FamiliarForm(forms.ModelForm):
         ]
         widgets = {
             "data_nascimento": forms.DateInput(attrs={"type": "date"}),
-            "cpf_numero": forms.TextInput(attrs={"maxlength": "14"}),
+            "cpf_numero": forms.TextInput(
+                attrs={
+                    "maxlength": "14",
+                    "placeholder": "000.000.000-00",
+                    "inputmode": "numeric",
+                }
+            ),
             "nis_numero": forms.TextInput(attrs={"maxlength": "11"}),
         }
 
@@ -297,6 +313,41 @@ class FamiliarForm(forms.ModelForm):
                 for item in self.instance.documentos_ausentes.split(",")
                 if item.strip()
             ]
+
+        is_avulso = not getattr(self.instance, "cadastro_id", None)
+        self.fields["nome_interno_referencia"].required = is_avulso
+
+    def clean_cpf_numero(self):
+        cpf = (self.cleaned_data.get("cpf_numero") or "").strip()
+        if not cpf:
+            return cpf
+
+        digits = re.sub(r"\D", "", cpf)
+        if len(digits) != 11:
+            raise forms.ValidationError("Informe o CPF no formato 000.000.000-00.")
+
+        return f"{digits[:3]}.{digits[3:6]}.{digits[6:9]}-{digits[9:]}"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        is_avulso = not getattr(self.instance, "cadastro_id", None)
+
+        nome_interno_referencia = (cleaned_data.get("nome_interno_referencia") or "").strip()
+        perfil_referencia_egresso = cleaned_data.get("perfil_referencia_egresso")
+        perfil_referencia_pre_egresso = cleaned_data.get("perfil_referencia_pre_egresso")
+
+        if is_avulso and not nome_interno_referencia:
+            self.add_error("nome_interno_referencia", "Informe o nome do interno da família.")
+
+        if is_avulso:
+            selecionados = int(bool(perfil_referencia_egresso)) + int(bool(perfil_referencia_pre_egresso))
+            if selecionados != 1:
+                message = "Marque somente uma opção: Egresso ou Pré-egresso."
+                self.add_error("perfil_referencia_egresso", message)
+                self.add_error("perfil_referencia_pre_egresso", message)
+
+        cleaned_data["nome_interno_referencia"] = nome_interno_referencia
+        return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)

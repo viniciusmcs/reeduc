@@ -4,6 +4,7 @@ Keep models as the single source of truth for business data.
 """
 
 from django.conf import settings
+from django.utils import timezone
 from django.db import models
 
 
@@ -43,6 +44,7 @@ class Cadastro(models.Model):
     ]
 
     RELIGIAO_CHOICES = [
+        ("cristao" , "Cristão"),
         ("catolica", "Católica"),
         ("evangelica", "Evangélica"),
         ("espirita", "Espírita"),
@@ -80,7 +82,7 @@ class Cadastro(models.Model):
     # --- Dados complementares ---
     data_nascimento = models.DateField(null=True, blank=True)
     naturalidade = models.CharField(max_length=120, blank=True)
-    data_cadastro = models.DateField(auto_now_add=True)
+    data_cadastro = models.DateField(default=timezone.localdate)
     religiao = models.CharField(max_length=20, choices=RELIGIAO_CHOICES, blank=True)
     religiao_desde_quando = models.CharField(max_length=120, blank=True)
     identidade_etnico_racial = models.CharField(max_length=20, choices=ETNIA_CHOICES, blank=True)
@@ -170,6 +172,14 @@ class Cadastro(models.Model):
     motivo_procura = models.TextField(blank=True)
     orientado_escritorio_social = models.BooleanField(default=False)
 
+    ENCAMINHAMENTO_CHOICES = [
+        ("politica_publica", "Política Pública"),
+        ("mercado_trabalho", "Mercado de Trabalho"),
+        ("cursos_capacitacoes", "Cursos e Capacitações"),
+    ]
+    encaminhamento = models.CharField(max_length=30, choices=ENCAMINHAMENTO_CHOICES, blank=True)
+    encaminhamento_detalhe = models.TextField(blank=True)
+
     # --- Endereço e contatos ---
     endereco = models.CharField(max_length=255, blank=True)
     bairro = models.CharField(max_length=120, blank=True)
@@ -202,9 +212,15 @@ class Cadastro(models.Model):
 
 
 class Familiar(models.Model):
-    """Cadastro de familiares vinculados ao reeducando."""
+    """Cadastro de familiares vinculados ao egresso."""
 
-    cadastro = models.ForeignKey(Cadastro, on_delete=models.CASCADE, related_name="familiares")
+    cadastro = models.ForeignKey(
+        Cadastro,
+        on_delete=models.CASCADE,
+        related_name="familiares",
+        null=True,
+        blank=True,
+    )
     nome = models.CharField(max_length=255)
     nome_social = models.CharField(max_length=255, blank=True)
     data_nascimento = models.DateField(null=True, blank=True)
@@ -216,6 +232,9 @@ class Familiar(models.Model):
     documentos_possui = models.TextField(blank=True)
     documentos_ausentes = models.TextField(blank=True)
     parentesco = models.CharField(max_length=120, blank=True)
+    perfil_referencia_egresso = models.BooleanField(default=False)
+    perfil_referencia_pre_egresso = models.BooleanField(default=False)
+    nome_interno_referencia = models.CharField(max_length=255, blank=True)
     bairro = models.CharField(max_length=120, blank=True)
     telefone_numero = models.CharField(max_length=20, blank=True)
     telefone_contato = models.CharField(max_length=120, blank=True)
@@ -270,7 +289,7 @@ class Lembrete(models.Model):
 
 
 class Atendimento(models.Model):
-    """Registro de atendimento a reeducando ou familiar não cadastrado."""
+    """Registro de atendimento a egresso ou familiar não cadastrado."""
 
     LOCAL_ATENDIMENTO_CHOICES = [
         ("escritorio_social", "Escritório Social"),
@@ -279,14 +298,14 @@ class Atendimento(models.Model):
     ]
 
     TIPO_ATENDIMENTO_CHOICES = [
-        ("individual", "Individual"),
-        ("familiar", "Familiar"),
-        ("grupo", "Grupo"),
+        ("presencial", "Presencial"),
+        ("online", "On-line"),
+        ("grupal", "Grupal"),
         ("outro", "Outro"),
     ]
 
     PERFIL_PESSOA_CHOICES = [
-        ("reeducando", "Reeducando"),
+        ("reeducando", "Egresso"),
         ("familiar", "Familiar"),
         ("nao_cadastrado", "Não cadastrado"),
         ("outro", "Outro"),

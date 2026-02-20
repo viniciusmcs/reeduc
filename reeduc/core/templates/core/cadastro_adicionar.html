@@ -11,7 +11,7 @@
 <body>
     <div class="layout">
         <aside class="sidebar">
-            <a class="brand" href="/home/">REEDUC</a>
+            <a class="brand" href="/home/">ESPI</a>
             <button class="new-button" id="novoButton">
                 <span class="icon">+</span>
                 <span>Novo</span>
@@ -36,6 +36,7 @@
                 </div>
                 <a class="menu__item" href="/agendamentos">Agendamentos</a>
                 <a class="menu__item" href="/home/atendimentos">Atendimentos</a>
+                <a class="menu__item" href="/familiares/adicionar">Familiar</a>
                 <a class="menu__item" href="/atividades/minhasatividades">Atividades</a>
             </nav>
         </aside>
@@ -116,8 +117,8 @@
                                 {{ form.naturalidade }}
                             </div>
                             <div class="field">
-                                <label for="data_cadastro">Data de cadastro <span class="tooltip" title="Gerado automaticamente pelo sistema.">i</span></label>
-                                <input type="date" id="data_cadastro" value="{% now 'Y-m-d' %}" readonly />
+                                <label for="id_data_cadastro">Data de cadastro <span class="tooltip" title="Selecione a data do cadastro.">i</span></label>
+                                {{ form.data_cadastro }}
                             </div>
                             <div class="field">
                                 <label for="id_religiao">Religião <span class="tooltip" title="{{ form.religiao.help_text }}">i</span></label>
@@ -275,6 +276,20 @@
                         <div class="field switch">
                             <label for="id_orientado_escritorio_social">Recebeu informações ou foi orientado(a) sobre o Escritório Social na Unidade Prisional?</label>
                             {{ form.orientado_escritorio_social }}
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2>Encaminhamentos</h2>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="id_encaminhamento">Encaminhamento</label>
+                                {{ form.encaminhamento }}
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="id_encaminhamento_detalhe">Detalhes do encaminhamento</label>
+                            {{ form.encaminhamento_detalhe }}
                         </div>
                     </section>
 

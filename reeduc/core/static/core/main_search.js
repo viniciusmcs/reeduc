@@ -1,4 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const novoMenu = document.getElementById('novoMenu');
+    if (novoMenu && !novoMenu.querySelector('a[href="/familiares/adicionar"]')) {
+        const familiarLink = document.createElement('a');
+        familiarLink.href = '/familiares/adicionar';
+        familiarLink.textContent = 'Familiar';
+        novoMenu.appendChild(familiarLink);
+    }
+
     const searchBoxes = document.querySelectorAll('.search');
     if (!searchBoxes.length) return;
 

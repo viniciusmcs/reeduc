@@ -47,6 +47,7 @@ def home_view(request):
     
     # Get other counts
     total_atendimentos = Atendimento.objects.count()
+    total_familiares_avulsos = Familiar.objects.filter(cadastro__isnull=True).count()
     
     context = {
         "user_name": request.user.get_username(),
@@ -57,6 +58,7 @@ def home_view(request):
         "cadastros_arquivados": cadastros_arquivados,
         "ultimo_cadastro": ultimo_cadastro,
         "total_atendimentos": total_atendimentos,
+        "total_familiares_avulsos": total_familiares_avulsos,
     }
     return render(request, "core/home.html", context)
 
@@ -91,8 +93,7 @@ def cadastro_lista_view(request, filtro: str | None = None):
         cadastros = cadastros.filter(status="arquivado")
         filtro_label = "Arquivados"
     elif filtro == "familiares":
-        cadastros = cadastros.none()
-        filtro_label = "Familiares"
+        return redirect("familiares-avulsos-lista")
 
     context = {
         "cadastros": cadastros,
@@ -200,6 +201,23 @@ def cadastro_agendamentos_view(request, cadastro_id: int):
 def familiar_ver_view(request, familiar_id: int):
     """View familiar details."""
     familiar = get_object_or_404(Familiar, id=familiar_id)
+    if familiar.cadastro_id is None:
+        documentos_possui = [
+            item.strip() for item in (familiar.documentos_possui or "").split(",") if item.strip()
+        ]
+        documentos_ausentes = [
+            item.strip() for item in (familiar.documentos_ausentes or "").split(",") if item.strip()
+        ]
+        return render(
+            request,
+            "core/familiar_avulso_ver.html",
+            {
+                "familiar": familiar,
+                "documentos_possui": documentos_possui,
+                "documentos_ausentes": documentos_ausentes,
+            },
+        )
+
     documentos_possui = [
         item.strip() for item in (familiar.documentos_possui or "").split(",") if item.strip()
     ]
@@ -254,6 +272,8 @@ def familiar_editar_view(request, familiar_id: int):
         form = FamiliarForm(request.POST, instance=familiar)
         if form.is_valid():
             form.save()
+            if familiar.cadastro_id is None:
+                return redirect("familiares-avulsos-lista")
             return redirect(f"/cadastro/familiares/{familiar.cadastro_id}")
     else:
         form = FamiliarForm(instance=familiar)
@@ -268,8 +288,97 @@ def familiar_excluir_view(request, familiar_id: int):
     if request.method == "POST":
         cadastro_id = familiar.cadastro_id
         familiar.delete()
+        if cadastro_id is None:
+            return redirect("familiares-avulsos-lista")
         return redirect(f"/cadastro/familiares/{cadastro_id}")
     return render(request, "core/familiar_excluir.html", {"familiar": familiar})
+
+
+@login_required
+def familiar_avulso_adicionar_view(request):
+    """Create a familiar record without vínculo com cadastro."""
+    if request.method == "POST":
+        form = FamiliarForm(request.POST, request.FILES)
+        if form.is_valid():
+            familiar = form.save(commit=False)
+            familiar.cadastro = None
+            familiar.save()
+            return redirect("familiares-avulsos-lista")
+    else:
+        form = FamiliarForm()
+
+    return render(request, "core/familiar_avulso_adicionar.html", {"form": form})
+
+
+@login_required
+def familiares_avulsos_lista_view(request):
+    """List familiar records without vínculo com cadastro."""
+    query = request.GET.get("q", "").strip()
+    familiares = Familiar.objects.filter(cadastro__isnull=True).order_by("-data_criacao")
+    if query:
+        familiares = familiares.filter(nome__icontains=query)
+
+    return render(
+        request,
+        "core/familiares_avulsos_lista.html",
+        {
+            "familiares": familiares,
+            "query": query,
+            "total": familiares.count(),
+        },
+    )
+
+
+@login_required
+def familiar_avulso_ver_view(request, familiar_id: int):
+    """View a familiar record without vínculo com cadastro."""
+    familiar = get_object_or_404(Familiar, id=familiar_id, cadastro__isnull=True)
+    documentos_possui = [
+        item.strip() for item in (familiar.documentos_possui or "").split(",") if item.strip()
+    ]
+    documentos_ausentes = [
+        item.strip() for item in (familiar.documentos_ausentes or "").split(",") if item.strip()
+    ]
+    return render(
+        request,
+        "core/familiar_avulso_ver.html",
+        {
+            "familiar": familiar,
+            "documentos_possui": documentos_possui,
+            "documentos_ausentes": documentos_ausentes,
+        },
+    )
+
+
+@login_required
+def familiar_avulso_editar_view(request, familiar_id: int):
+    """Edit a familiar record without vínculo com cadastro."""
+    familiar = get_object_or_404(Familiar, id=familiar_id, cadastro__isnull=True)
+    if request.method == "POST":
+        form = FamiliarForm(request.POST, request.FILES, instance=familiar)
+        if form.is_valid():
+            familiar = form.save(commit=False)
+            familiar.cadastro = None
+            familiar.save()
+            return redirect("familiares-avulsos-lista")
+    else:
+        form = FamiliarForm(instance=familiar)
+
+    return render(
+        request,
+        "core/familiar_avulso_editar.html",
+        {"form": form, "familiar": familiar},
+    )
+
+
+@login_required
+def familiar_avulso_excluir_view(request, familiar_id: int):
+    """Delete a familiar record without vínculo com cadastro."""
+    familiar = get_object_or_404(Familiar, id=familiar_id, cadastro__isnull=True)
+    if request.method == "POST":
+        familiar.delete()
+        return redirect("familiares-avulsos-lista")
+    return render(request, "core/familiar_avulso_excluir.html", {"familiar": familiar})
 
 
 @login_required
@@ -653,7 +762,7 @@ def minhas_atividades_view(request):
                     ),
                     "atividade": "Novo Cadastro",
                     "tecnico": "Sistema",
-                    "reeducando": cadastro.nome,
+                    "egresso": cadastro.nome,
                     "acoes": {
                         "ver": f"/home/cadastros/{cadastro.id}/ver",
                         "editar": f"/home/cadastros/{cadastro.id}/editar",
@@ -677,7 +786,7 @@ def minhas_atividades_view(request):
                     ),
                     "atividade": "Novo Agendamento",
                     "tecnico": "Sistema",
-                    "reeducando": agendamento.nome_atendido,
+                    "egresso": agendamento.nome_atendido,
                     "acoes": {
                         "ver": f"/agendamentos/{agendamento.id}/ver",
                         "editar": f"/agendamentos/{agendamento.id}/editar",
@@ -701,7 +810,7 @@ def minhas_atividades_view(request):
                     ),
                     "atividade": "Novo Atendimento",
                     "tecnico": atendimento.profissional_responsavel or "Sistema",
-                    "reeducando": atendimento.nome_pessoa_atendida,
+                    "egresso": atendimento.nome_pessoa_atendida,
                     "acoes": {
                         "ver": f"/atendimentos/{atendimento.id}/ver",
                         "editar": f"/atendimentos/{atendimento.id}/editar",
@@ -723,7 +832,7 @@ def minhas_atividades_view(request):
                     "data_ordem": normalize_datetime(lembrete.data_criacao),
                     "atividade": "Anotação",
                     "tecnico": getattr(lembrete.criado_por, "username", "Sistema"),
-                    "reeducando": lembrete.cadastro.nome,
+                    "egresso": lembrete.cadastro.nome,
                     "acoes": {
                         "ver": f"/cadastro/perfil/{lembrete.cadastro.id}",
                         "editar": "/anotacoes/editar/?cadastro_id={}".format(lembrete.cadastro.id),
