@@ -64,7 +64,7 @@
                 <div class="perfil-header">
                     <div>
                         <h1>{{ familiar.nome }}</h1>
-                        <p>Familiar sem vínculo com cadastro de interno no sistema</p>
+                        <p>Familiar sem vínculo com cadastro de egresso no sistema</p>
                     </div>
                 </div>
 
@@ -82,7 +82,7 @@
                             <p><strong>Nome social:</strong> {{ familiar.nome_social|default:"-" }}</p>
                             <p><strong>Data de nascimento:</strong> {{ familiar.data_nascimento|date:"d/m/Y"|default:"-" }}</p>
                             <p><strong>Parentesco:</strong> {{ familiar.parentesco|default:"-" }}</p>
-                            <p><strong>Nome do interno:</strong> {{ familiar.nome_interno_referencia|default:"-" }}</p>
+                            <p><strong>Nome do egresso:</strong> {{ familiar.nome_interno_referencia|default:"-" }}</p>
                             <p><strong>Interno é egresso:</strong> {% if familiar.perfil_referencia_egresso %}Sim{% else %}Não{% endif %}</p>
                             <p><strong>Interno é pré-egresso:</strong> {% if familiar.perfil_referencia_pre_egresso %}Sim{% else %}Não{% endif %}</p>
                         </div>
