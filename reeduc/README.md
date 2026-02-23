@@ -2,7 +2,6 @@
 
 ## Requisitos
 - Python 3.12+
-- PostgreSQL 14+
 
 ## Ambiente virtual (venv)
 ```bash
@@ -21,27 +20,24 @@ Copie o arquivo de exemplo e ajuste as credenciais:
 copy .env.example .env
 ```
 
-## Banco de dados (PostgreSQL)
-Crie o usuário e o banco:
-```bash
-psql -U postgres -f scripts/create_db.sql
-```
-
-Credenciais solicitadas:
-- Usuário: **sejus**
-- Senha: **sejus@pi**
-- Banco: **reeducdb**
-
 ## Migrações
 ```bash
 python manage.py migrate
 ```
 
-## Desenvolvimento local (SQLite)
-Para usar o banco local `db.sqlite3`:
-```bash
-python manage.py migrate
+## Banco de dados (SQLite padrão)
+O projeto está configurado para usar `sqlite3` por padrão:
+
+```python
+DATABASES = {
+	'default': {
+		'ENGINE': 'django.db.backends.sqlite3',
+		'NAME': BASE_DIR / 'db.sqlite3',
+	}
+}
 ```
+
+Se quiser PostgreSQL, defina `USE_SQLITE=False` no `.env` e configure `DB_*`.
 
 ## Criar superusuario
 ```bash
@@ -53,6 +49,17 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+## Acesso na rede interna (HTTP)
+O sistema pode ser acessado na rede por:
+
+`http://10.0.125.4:8000`
+
+Para subir escutando no IP da máquina:
+
+```bash
+python manage.py runserver 0.0.0.0:8000
+```
+
 ## Testes
 ```bash
 python manage.py test
@@ -60,3 +67,5 @@ python manage.py test
 
 ## Produção
 Defina `DJANGO_SETTINGS_MODULE=reeduc.settings_prod` e `DJANGO_DEBUG=False`.
+
+Neste projeto, o `settings_prod` está ajustado para rede interna por HTTP (sem redirecionamento obrigatório para HTTPS).

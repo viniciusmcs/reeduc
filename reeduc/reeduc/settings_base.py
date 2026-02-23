@@ -39,7 +39,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "unsafe-secret-key-for-dev-only")
 DEBUG = get_env_bool("DJANGO_DEBUG", False)
 
 # Allow hosts configured via environment variables.
-ALLOWED_HOSTS = get_env_list("DJANGO_ALLOWED_HOSTS", ["127.0.0.1", "localhost"])
+ALLOWED_HOSTS = get_env_list("DJANGO_ALLOWED_HOSTS", ["127.0.0.1", "localhost", "10.0.125.4"])
 
 # Application definition
 INSTALLED_APPS = [
@@ -85,8 +85,8 @@ WSGI_APPLICATION = "reeduc.wsgi.application"
 ASGI_APPLICATION = "reeduc.asgi.application"
 
 # Database configuration
-# Default: PostgreSQL (preferred). Optionally set USE_SQLITE=True for quick tests.
-USE_SQLITE = get_env_bool("USE_SQLITE", False)
+# Default: SQLite for local/network deployment simplicity.
+USE_SQLITE = get_env_bool("USE_SQLITE", True)
 
 if USE_SQLITE:
     DATABASES = {
